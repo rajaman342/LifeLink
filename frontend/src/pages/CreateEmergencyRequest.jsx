@@ -1,143 +1,152 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import axiosInstance from "../services/axiosInstance";
 
 function CreateEmergencyRequest() {
-
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
-
         bloodGroup: "",
         unitsRequired: 1,
         hospitalName: "",
         hospitalAddress: "",
-        contactNumber: ""
-
+        contactNumber: "",
     });
 
     const [loading, setLoading] = useState(false);
-
     const [error, setError] = useState("");
 
-    const [success, setSuccess] = useState("");
+    // ==========================================
+    // HANDLE INPUT CHANGE
+    // ==========================================
 
     const handleChange = (e) => {
-
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [e.target.name]: e.target.value,
         });
-
     };
 
-    const handleSubmit = async (e) => {
+    // ==========================================
+    // CREATE REQUEST
+    // ==========================================
 
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         try {
-
             setLoading(true);
-
             setError("");
 
-            setSuccess("");
+            // ==========================================
+            // STEP 1: CREATE EMERGENCY REQUEST
+            // ==========================================
 
             const response = await axiosInstance.post(
                 "/emergency/create",
                 formData
             );
 
-            console.log(response.data);
-
-            setSuccess(
-                "Emergency request created successfully!"
+            console.log(
+                "Create Request Response:",
+                response.data
             );
 
-            setFormData({
+            // ==========================================
+            // STEP 2: GET AI RECOMMENDED DONORS
+            // ==========================================
 
-                bloodGroup: "",
-                unitsRequired: 1,
-                hospitalName: "",
-                hospitalAddress: "",
-                contactNumber: ""
+            const recommendResponse =
+                await axiosInstance.post(
+                    "/emergency/recommend",
+                    {
+                        bloodGroup: formData.bloodGroup,
+                    }
+                );
 
+            console.log(
+                "AI Recommendation Response:",
+                recommendResponse.data
+            );
+
+            // ==========================================
+            // STEP 3: GET CREATED REQUEST
+            // ==========================================
+
+            const newRequest =
+                response.data.request ||
+                response.data;
+
+            // ==========================================
+            // STEP 4: GO TO PATIENT DASHBOARD
+            // ==========================================
+
+            navigate("/patient-dashboard", {
+                state: {
+                    newRequest: newRequest,
+
+                    recommendedDonors:
+                        recommendResponse.data.donors || [],
+                },
             });
 
         } catch (error) {
-
-            console.log(error);
+            console.error(
+                "Create Emergency Request Error:",
+                error
+            );
 
             setError(
                 error.response?.data?.message ||
                 "Failed to create emergency request"
             );
-
         } finally {
-
             setLoading(false);
-
         }
-
     };
 
     return (
-
         <div className="min-h-screen bg-gray-100 p-6">
 
             <div className="max-w-2xl mx-auto">
 
+                {/* ==========================================
+                    FORM CARD
+                ========================================== */}
+
                 <div className="bg-white rounded-2xl shadow-lg p-8">
 
                     <h1 className="text-3xl font-bold text-red-600">
-
                         Emergency Blood Request
-
                     </h1>
 
                     <p className="text-gray-500 mt-2">
-
                         Create a request for urgent blood requirements.
-
                     </p>
 
+                    {/* ERROR */}
 
                     {error && (
-
                         <div className="mt-5 bg-red-100 text-red-600 p-3 rounded-lg">
-
                             {error}
-
                         </div>
-
                     )}
 
-
-                    {success && (
-
-                        <div className="mt-5 bg-green-100 text-green-600 p-3 rounded-lg">
-
-                            {success}
-
-                        </div>
-
-                    )}
-
+                    {/* ==========================================
+                        FORM
+                    ========================================== */}
 
                     <form
                         onSubmit={handleSubmit}
                         className="mt-8 space-y-5"
                     >
 
-                        {/* Blood Group */}
+                        {/* BLOOD GROUP */}
 
                         <div>
 
                             <label className="block mb-2 font-medium">
-
                                 Blood Group
-
                             </label>
 
                             <select
@@ -154,10 +163,13 @@ function CreateEmergencyRequest() {
 
                                 <option value="A+">A+</option>
                                 <option value="A-">A-</option>
+
                                 <option value="B+">B+</option>
                                 <option value="B-">B-</option>
+
                                 <option value="AB+">AB+</option>
                                 <option value="AB-">AB-</option>
+
                                 <option value="O+">O+</option>
                                 <option value="O-">O-</option>
 
@@ -165,15 +177,12 @@ function CreateEmergencyRequest() {
 
                         </div>
 
-
-                        {/* Units */}
+                        {/* UNITS */}
 
                         <div>
 
                             <label className="block mb-2 font-medium">
-
                                 Units Required
-
                             </label>
 
                             <input
@@ -189,15 +198,12 @@ function CreateEmergencyRequest() {
 
                         </div>
 
-
-                        {/* Hospital Name */}
+                        {/* HOSPITAL NAME */}
 
                         <div>
 
                             <label className="block mb-2 font-medium">
-
                                 Hospital Name
-
                             </label>
 
                             <input
@@ -212,15 +218,12 @@ function CreateEmergencyRequest() {
 
                         </div>
 
-
-                        {/* Hospital Address */}
+                        {/* HOSPITAL ADDRESS */}
 
                         <div>
 
                             <label className="block mb-2 font-medium">
-
                                 Hospital Address
-
                             </label>
 
                             <textarea
@@ -235,15 +238,12 @@ function CreateEmergencyRequest() {
 
                         </div>
 
-
-                        {/* Contact */}
+                        {/* CONTACT */}
 
                         <div>
 
                             <label className="block mb-2 font-medium">
-
                                 Contact Number
-
                             </label>
 
                             <input
@@ -258,6 +258,7 @@ function CreateEmergencyRequest() {
 
                         </div>
 
+                        {/* SUBMIT */}
 
                         <button
                             type="submit"
@@ -266,7 +267,7 @@ function CreateEmergencyRequest() {
                         >
 
                             {loading
-                                ? "Creating Request..."
+                                ? "Creating Request & Finding Donors..."
                                 : "Create Emergency Request"}
 
                         </button>
@@ -278,9 +279,7 @@ function CreateEmergencyRequest() {
             </div>
 
         </div>
-
     );
-
 }
 
 export default CreateEmergencyRequest;

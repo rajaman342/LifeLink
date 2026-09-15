@@ -33,7 +33,13 @@ const emergencyRequestSchema=new mongoose.Schema({
 
     status:{
         type:String,
-        enum:["Pending","Accepted","Completed","Cancelled"],
+       enum: [
+    "Pending",
+    "Accepted",
+    "Completed",
+    "Cancelled",
+    "Expired"
+],
         default:"Pending"
     },
     donor:{
@@ -45,6 +51,10 @@ const emergencyRequestSchema=new mongoose.Schema({
 acceptedAt:{
     type:Date,
     default:null
+},
+expiresAt: {
+    type: Date,
+    required: true
 },
 
 completedAt:{

@@ -3,8 +3,11 @@ const connectDb=require("./config/database");
 const authRoutes=require("./routes/authRoutes");
 const userRoutes=require("./routes/userRoutes");
 const emergencyRoutes=require("./routes/emergencyRoutes");
+const aiRoutes = require("./routes/aiRoutes");
 
 const hospitalRoutes=require("./routes/hospitalRoutes");
+
+const notificationRoutes = require("./routes/notificationRoutes");
 const donorRoutes=require("./routes/donorRoutes");
 
 const adminRoutes=require("./routes/adminRoutes");
@@ -31,11 +34,19 @@ app.use(cors({
 app.use("/api/v1/auth",authRoutes);
 
 app.use("/api/v1/user",userRoutes);
+app.use(
+    "/api/v1/ai",
+    aiRoutes
+);
 app.use("/api/v1/emergency",emergencyRoutes);
 app.use("/api/v1/hospital",hospitalRoutes);
 
 app.use("/api/v1/donor",donorRoutes);
 app.use("/api/v1/admin",adminRoutes);
+app.use(
+    "/api/v1/notifications",
+    notificationRoutes
+);
 
 
 app.listen(PORT,()=>{
